@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aashayein - Shayari Memories</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-image: url('IMG-20260526-WA0992.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #0b1a10;
+            font-family: 'Georgia', serif;
+            color: #ffffff;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8);
+        }
+        .content {
+            background: rgba(15, 32, 23, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 50px 30px;
+            border-radius: 20px;
+            max-width: 650px; /* Slightly widened to fit the button layout beautifully */
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+        h1 {
+            font-family: 'Arial', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+            color: #dfc15d;
+        }
+        .shayari-section {
+            margin-bottom: 40px;
+        }
+        .shayari-card {
+            font-size: 1.35rem;
+            line-height: 2.2rem;
+            font-style: italic;
+            color: #f0f0f0;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+        .line {
+            margin-bottom: 8px;
+        }
+        .divider {
+            color: #dfc15d;
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+
+        /* Navigation Buttons Layout */
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-container a {
+            text-decoration: none;
+            padding: 12px 26px;
+            font-family: 'Arial', sans-serif;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            display: inline-block;
+        }
+
+        /* Go Back Home Button */
+        .back-btn {
+            background: linear-gradient(45deg, #1b4d3e, #2d6a4f);
+            border: 1px solid #dfc15d;
+            color: #ffffff;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(223, 193, 93, 0.4);
+            background: linear-gradient(45deg, #2d6a4f, #1b4d3e);
+        }
+
+        /* Watch My Videos Button */
+        .video-btn {
+            background: linear-gradient(45deg, #1A365D, #2B6CB0);
+            border: 1px solid #dfc15d;
+            color: #ffffff;
+        }
+        .video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(223, 193, 93, 0.4);
+            background: linear-gradient(45deg, #2B6CB0, #1A365D);
+        }
+
+        /* See All Memories Button */
+        .memories-btn {
+            background: linear-gradient(45deg, #946f19, #dfc15d);
+            border: 1px solid #ffffff;
+            color: #0f2017;
+        }
+        .memories-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+            background: linear-gradient(45deg, #dfc15d, #946f19);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+        <h1>Yaadon Ka Aashiya...</h1>
+        
+        <!-- Shayari Section -->
+        <div class="shayari-section">
+            <div class="shayari-card">
+                <div class="line">Kuch haseen palon ki yaad hai ye,</div>
+                <div class="line">Dil ke behad paas ek jazbaat hai ye.</div>
+            </div>
+            <div class="divider">✦ ✦ ✦</div>
+            <div class="shayari-card">
+                <div class="line">Gungunata rehta hai dil jise har pal,</div>
+                <div class="line">Wahi pyaari si ek shuruaat hai ye. ✨</div>
+            </div>
+            <div class="divider">✦ ✦ ✦</div>
+            <div class="shayari-card">
+                <div class="line">Har ek lamha jo isme samaya hai,</div>
+                <div class="line">Khushiyon ka ek naya silsila laya hai. 💫</div>
+            </div>
+        </div>
+        
+        <!-- Navigation Buttons Container -->
+        <div class="btn-container">
+            <a href="aashya camp .html" id="backToHome" class="back-btn">⬅ Back to Home</a>
+            <a href="video.html" class="video-btn">Watch My Videos</a>
+            <a href="combain.html" class="memories-btn">See All Memories</a>
+        </div>
+    </div>
+    
+
+    <!-- Hidden audio elements background sync tracker -->
+    <audio id="shayariAudio" loop>
+        <source src="aashiya-song.mp3.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        const sAudio = document.getElementById('shayariAudio');
+        const backBtn = document.getElementById('backToHome');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Read exactly where the user left off on index.html
+            const savedTime = localStorage.getItem('musicTime');
+            if (savedTime) {
+                sAudio.currentTime = parseFloat(savedTime);
+            }
+            
+            // Try to resume music automatically
+            sAudio.play().catch(() => {
+                console.log("Browser protected audio tracking. Resuming upon page click.");
+            });
+        });
+
+        // Save current music milestone before returning to main index frame
+        backBtn.addEventListener('click', () => {
+            localStorage.setItem('musicTime', sAudio.currentTime);
+        });
+
+        // Fallback user gesture to force continue song if browser holds it
+        document.body.addEventListener('click', () => {
+            if (sAudio.paused) {
+                sAudio.play();
+            }
+        }, { once: true });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Memory - Aashiya</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-image: url('IMG-20260526-WA0684.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            color: #ffffff;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        }
+        .content {
+            background: rgba(15, 32, 23, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            border-radius: 20px;
+            max-width: 650px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            color: #dfc15d;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: #cccccc;
+        }
+        .star-photo {
+            width: 210px;
+            height: 210px;
+            object-fit: cover;
+            margin-bottom: 25px;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            border: 2px solid #dfc15d;
+        }
+        audio {
+            width: 90%;
+            border-radius: 30px;
+            margin-bottom: 30px;
+        }
+        
+        /* Button Container to hold both buttons side-by-side or stacked cleanly */
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            width: 90%;
+            justify-content: center;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+
+        .shayari-btn, .video-btn {
+            display: inline-block;
+            border: 1px solid #dfc15d;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 25px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .shayari-btn {
+            background: linear-gradient(45deg, #1b4d3e, #2d6a4f);
+        }
+
+        .video-btn {
+            background: linear-gradient(45deg, #7c6218, #a68422);
+        }
+
+        .shayari-btn:hover, .video-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(223, 193, 93, 0.4);
+        }
+
+        .shayari-btn:hover {
+            background: linear-gradient(45deg, #2d6a4f, #1b4d3e);
+        }
+
+        .video-btn:hover {
+            background: linear-gradient(45deg, #a68422, #7c6218);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .gallery-item {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(223, 193, 93, 0.4);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+            border-color: #dfc15d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content">
+        <h1>Aashiya</h1>
+        <p class="subtitle">A collection of my favorite memories.</p>
+        
+        <img src="motion_photo_4366042070625135910.jpg" alt="Aashiya's Star Profile" class="star-photo">
+        
+        <audio id="bgAudio" controls loop>
+            <source src="aashiya-song.mp3.mp3" type="video/mp4">
+            Your browser does not support the audio element.
+        </audio>
+
+        <!-- New Button Container with Both Options -->
+        <div class="btn-container">
+            <a href="shayari.html" id="toShayari" class="shayari-btn">Read My Shayari</a>
+            <!-- Point this to your new videos page file name -->
+            <a href="video.html" id="toVideos" class="video-btn">Watch My Videos</a>
+            <a href="combain.html" id="toCombain" class="video-btn">See All Memories</a>
+        </div>
+
+        <div class="gallery-grid">
+            <img src="bg.jpg.jpg" alt="Memory 1" class="gallery-item">
+            <img src="IMG-20260526-WA0680.jpg" alt="Memory 2" class="gallery-item">
+            <img src="IMG-20260525-WA0058.jpg" alt="Memory 3" class="gallery-item">
+        </div>
+    </div>
+
+    <script>
+        const audioInstance = document.getElementById('bgAudio');
+        const linkBtn = document.getElementById('toShayari');
+        const videoBtn = document.getElementById('toVideos');
+
+        // Check if returning from another page and resume time
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTime = localStorage.getItem('musicTime');
+            if (savedTime) {
+                audioInstance.currentTime = parseFloat(savedTime);
+            }
+            
+            audioInstance.play().catch(() => {
+                console.log("Autoplay blocked. Click page to resume.");
+            });
+        });
+
+        // Save song time status when navigating to Shayari page
+        linkBtn.addEventListener('click', () => {
+            localStorage.setItem('musicTime', audioInstance.currentTime);
+        });
+
+        // Clear or update time when going to videos so audio doesn't cross over
+        videoBtn.addEventListener('click', () => {
+            localStorage.setItem('musicTime', audioInstance.currentTime);
+        });
+
+        // Safe interaction play trigger
+        document.body.addEventListener('click', () => {
+            if (audioInstance.paused) {
+                audioInstance.play();
+            }
+        }, { once: true });
+    </script>
+
+</body>
+</html>
