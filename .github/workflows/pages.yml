@@ -2,9 +2,18 @@ name: SLSA generic generator
 on:
   workflow_dispatch:
 
+# 1. Grant the necessary permissions for OIDC token generation
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 2. We must export the SHA256 hashes of the files so the SLSA generator can read them
+    outputs:
+      hashes: ${{ steps.share-hashes.outputs.hashes }}
     steps:
       - uses: actions/checkout@v4
 
@@ -14,9 +23,23 @@ jobs:
             echo "artifact1" > artifact1
             echo "artifact2" > artifact2
 
-      # Step 2: Save the files securely on GitHub
+      # Step 2: Generate the base64 subject hashes required by SLSA
+      - name: Generate hashes
+        id: share-hashes
+        run: |
+            echo "hashes=$(sha256sum artifact* | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+      # Step 3: Save the files securely on GitHub
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: my-build-artifacts
           path: artifact*
+
+  # 3. Call the SLSA generator as a standalone reusable job
+  provenance:
+    needs: [build]
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true # Optional: Set to true if you want it uploaded to a release
