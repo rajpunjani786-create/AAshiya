@@ -2,11 +2,10 @@ name: SLSA generic generator
 on:
   workflow_dispatch:
 
-# These must be set globally at the top level
 permissions:
-  id-token: write    # Crucial for fixing Exit Code 27
-  contents: write    # Required to attach the provenance to your releases/tags
-  actions: read      # Required to download workflow metadata
+  id-token: write
+  contents: write
+  actions: read
 
 jobs:
   build:
@@ -16,28 +15,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Step 1: Create the files
       - name: Build artifacts
         run: |
             echo "artifact1" > artifact1
             echo "artifact2" > artifact2
 
-      # Step 2: Generate the base64 subject hashes required by SLSA
+      # The SLSA generator requires the SHA256 hashes to be generated EXACTLY like this
       - name: Generate hashes
         id: share-hashes
         run: |
             echo "hashes=$(sha256sum artifact* | base64 -w0)" >> "$GITHUB_OUTPUT"
 
-      # Step 3: Save the files securely on GitHub
+      # Optional but recommended to ensure the files are retained
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: my-build-artifacts
           path: artifact*
 
-  # Step 4: The actual SLSA generator that consumes your hashes
   provenance:
     needs: [build]
+    # CRITICAL: Using v2.0.0 bypasses the internal Sigstore TUF mirror bugs found in v1.x.x
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
