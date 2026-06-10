@@ -3,30 +3,33 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: write
-  actions: read
+  id-token: write    # Required for OIDC signing
+  contents: read     # Required to read repository contents
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 1. This block links the step output below to the global job outputs
     outputs:
       hashes: ${{ steps.share-hashes.outputs.hashes }}
     steps:
       - uses: actions/checkout@v4
 
+      # Step 1: Create the files
       - name: Build artifacts
         run: |
             echo "artifact1" > artifact1
             echo "artifact2" > artifact2
 
-      # The SLSA generator requires the SHA256 hashes to be generated EXACTLY like this
+      # Step 2: Generate the cryptographic hashes and set them to outputs
+      # This is the exact step that prevents Exit Code 27
+      @id: share-hashes
       - name: Generate hashes
         id: share-hashes
         run: |
             echo "hashes=$(sha256sum artifact* | base64 -w0)" >> "$GITHUB_OUTPUT"
 
-      # Optional but recommended to ensure the files are retained
+      # Step 3: Save the files on GitHub
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -35,8 +38,9 @@ jobs:
 
   provenance:
     needs: [build]
-    # CRITICAL: Using v2.0.0 bypasses the internal Sigstore TUF mirror bugs found in v1.x.x
+    # Uses the stable, up-to-date version of the SLSA generator
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
+      # 2. This explicitly hands over the artifact hashes to the generator
       base64-subjects: "${{ needs.build.outputs.hashes }}"
       upload-assets: false
