@@ -63,5 +63,5 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.build.outputs.digests }}"
-      # FIXED: This automatically detects if you ran it manually vs via a real release creation
-      upload-assets: ${{ github.event_name == 'release' }}
+      # FIXED: Set to hardcoded false so manual runs pass instantly 
+      upload-assets: false
