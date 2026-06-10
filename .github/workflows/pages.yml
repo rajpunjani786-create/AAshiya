@@ -60,8 +60,8 @@ jobs:
       actions: read   # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    # Uses the correct version to prevent upload errors
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.build.outputs.digests }}"
-      upload-assets: false # Changed to false to prevent exit code 27 error
+      # FIXED: This automatically detects if you ran it manually vs via a real release creation
+      upload-assets: ${{ github.event_name == 'release' }}
