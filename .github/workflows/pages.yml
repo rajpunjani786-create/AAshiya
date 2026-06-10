@@ -2,16 +2,15 @@ name: SLSA generic generator
 on:
   workflow_dispatch:
 
-# 1. Grant the necessary permissions for OIDC token generation
+# These must be set globally at the top level
 permissions:
-  id-token: write
-  contents: write
-  actions: read
+  id-token: write    # Crucial for fixing Exit Code 27
+  contents: write    # Required to attach the provenance to your releases/tags
+  actions: read      # Required to download workflow metadata
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 2. We must export the SHA256 hashes of the files so the SLSA generator can read them
     outputs:
       hashes: ${{ steps.share-hashes.outputs.hashes }}
     steps:
@@ -36,10 +35,10 @@ jobs:
           name: my-build-artifacts
           path: artifact*
 
-  # 3. Call the SLSA generator as a standalone reusable job
+  # Step 4: The actual SLSA generator that consumes your hashes
   provenance:
     needs: [build]
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
-      upload-assets: true # Optional: Set to true if you want it uploaded to a release
+      upload-assets: false
