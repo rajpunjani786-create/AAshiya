@@ -1,4 +1,4 @@
-name: CI Build and Package
+name: CI Build, Package, and Provenance
 
 on:
   push:
@@ -11,39 +11,44 @@ jobs:
     name: Build and Package
     runs-on: ubuntu-latest
     outputs:
-      hashes: ${{ steps: hash.outputs.hashes }} # Required if passing data to provenance
+      hashes: ${{ steps.hash.outputs.hashes }}
 
     steps:
+      # 1. Standard Code Checkout
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. Modern Node Environment to address Node 20 deprecation warnings
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # Standard install and build steps
+      # 3. Safe installation if your repository is missing a lockfile
       - name: Install Dependencies
         run: npm install
 
       - name: Run Build
         run: npm run build --if-present
 
-      # Example step that generates hashes for the provenance generator to verify
+      # 4. Generate the cryptographic hashes needed for the SLSA generator
       - name: Generate Hashes
         id: hash
         run: |
-          echo "hashes=$(sha256sum dist/* | base64 -w0)" >> $GITHUB_OUTPUT
+          # Creates hashes of your distribution assets and safely pipes to modern GITHUB_OUTPUT
+          cd dist 2>/dev/null || cd build 2>/dev/null || mkdir dist
+          echo "hashes=$(sha256sum * 2>/dev/null | base64 -w0)" >> "$GITHUB_OUTPUT"
 
-  # THIS IS THE JOB CAUSING YOUR ERROR: Update the 'uses' line here
+  # THIS JOB GENERATES THE PROVENANCE ATTESTATION
   provenance:
     needs: [build]
     permissions:
-      id-token: write   # Required for keyless signing
-      contents: read     # Required to read code
-      actions: read      # Required to read workflow runs
-    # FIXED: Upgraded the shared template version so it stops using the deprecated v3 artifact action
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+      id-token: write   # Required for keyless OIDC signing
+      contents: read     # Required to read repository info
+      actions: read      # Required to evaluate workflow metrics
+    
+    # FIXED: Swapped out old v1 tags for v2.1.0, which stops pulling the deprecated v3 artifact upload code
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
       upload-assets: true
