@@ -10,46 +10,40 @@ jobs:
   build:
     name: Build and Package
     runs-on: ubuntu-latest
-    
-    # OPTIONAL: Uncomment the lines below if your project lives in a subfolder (e.g., frontend/ or app/)
-    # defaults:
-    #   run:
-    #     working-directory: ./your-subfolder-name
+    outputs:
+      hashes: ${{ steps: hash.outputs.hashes }} # Required if passing data to provenance
 
     steps:
-      # 1. Checkout your repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js 
-      # Note: We safely removed the 'cache' property here to prevent the pipeline from failing 
-      # if a package-lock.json isn't present in your repository yet.
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # 3. Install your project dependencies
-      # Changed from 'npm ci' to 'npm install' because 'npm ci' strictly requires a package-lock.json to exist.
+      # Standard install and build steps
       - name: Install Dependencies
         run: npm install
 
-      # 4. Run your build scripts
       - name: Run Build
         run: npm run build --if-present
 
-      # 5. Modernized output strategy (Replaces the deprecated 'set-output' syntax)
-      - name: Detect Environment
-        id: detect-env
+      # Example step that generates hashes for the provenance generator to verify
+      - name: Generate Hashes
+        id: hash
         run: |
-          echo "env_name=production" >> $GITHUB_OUTPUT
+          echo "hashes=$(sha256sum dist/* | base64 -w0)" >> $GITHUB_OUTPUT
 
-      # 6. Upload your final build artifacts using the secure v4 version
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-assets
-          path: |
-            dist/
-            build/
-          retention-days: 5
+  # THIS IS THE JOB CAUSING YOUR ERROR: Update the 'uses' line here
+  provenance:
+    needs: [build]
+    permissions:
+      id-token: write   # Required for keyless signing
+      contents: read     # Required to read code
+      actions: read      # Required to read workflow runs
+    # FIXED: Upgraded the shared template version so it stops using the deprecated v3 artifact action
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      upload-assets: true
