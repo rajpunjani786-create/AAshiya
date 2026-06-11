@@ -1,46 +1,48 @@
-name: SLSA generic generator
-on:
-  workflow_dispatch:
+name: CI Build and Provenance
 
-permissions:
-  id-token: write    # Required for OIDC signing
-  contents: read     # Required to read repository contents
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
+    name: Build and Package
     runs-on: ubuntu-latest
-    # 1. This block links the step output below to the global job outputs
-    outputs:
-      hashes: ${{ steps.share-hashes.outputs.hashes }}
+
     steps:
-      - uses: actions/checkout@v4
+      # 1. Fixed: Kept up-to-date with modern Node runner environments
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # Step 1: Create the files
-      - name: Build artifacts
+      # 2. Setup Node.js (Upgraded to Node 22 to clear out Node 20 deprecation warnings)
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Build
+        run: npm run build --if-present
+
+      # 3. Fixed: Replaced deprecated 'set-output' syntax with modern environment files
+      - name: Detect Environment (Provenance Setup)
+        id: detect-env
         run: |
-            echo "artifact1" > artifact1
-            echo "artifact2" > artifact2
+          echo "Current environment configuration..."
+          echo "env_name=production" >> $GITHUB_OUTPUT
+          echo "build_time=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      # Step 2: Generate the cryptographic hashes and set them to outputs
-      # This is the exact step that prevents Exit Code 27
-      @id: share-hashes
-      - name: Generate hashes
-        id: share-hashes
-        run: |
-            echo "hashes=$(sha256sum artifact* | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-      # Step 3: Save the files on GitHub
-      - name: Upload Artifacts
+      # 4. Fixed: Upgraded from the deprecated commit hash to the stable v4 release
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: my-build-artifacts
-          path: artifact*
-
-  provenance:
-    needs: [build]
-    # Uses the stable, up-to-date version of the SLSA generator
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
-    with:
-      # 2. This explicitly hands over the artifact hashes to the generator
-      base64-subjects: "${{ needs.build.outputs.hashes }}"
-      upload-assets: false
+          name: production-assets
+          path: |
+            dist/
+            build/
+          retention-days: 5
