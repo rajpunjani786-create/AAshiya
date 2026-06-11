@@ -1,4 +1,4 @@
-name: CI Build, Package, and Provenance
+name: CI Build and Provenance
 
 on:
   push:
@@ -14,40 +14,39 @@ jobs:
       hashes: ${{ steps.hash.outputs.hashes }}
 
     steps:
-      # 1. Standard Code Checkout
+      # 1. Checkout your source repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Modern Node Environment to address Node 20 deprecation warnings
+      # 2. Modern Node environment setup
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # 3. Safe installation if your repository is missing a lockfile
+      # 3. Safe installation (works even if package-lock.json is missing)
       - name: Install Dependencies
         run: npm install
 
+      # 4. Build step
       - name: Run Build
         run: npm run build --if-present
 
-      # 4. Generate the cryptographic hashes needed for the SLSA generator
+      # 5. Generates the safe outputs for the provenance generator below
       - name: Generate Hashes
         id: hash
         run: |
-          # Creates hashes of your distribution assets and safely pipes to modern GITHUB_OUTPUT
-          cd dist 2>/dev/null || cd build 2>/dev/null || mkdir dist
-          echo "hashes=$(sha256sum * 2>/dev/null | base64 -w0)" >> "$GITHUB_OUTPUT"
+          mkdir -p dist build
+          echo "hashes=$(sha256sum dist/* build/* 2>/dev/null | base64 -w0)" >> "$GITHUB_OUTPUT"
 
-  # THIS JOB GENERATES THE PROVENANCE ATTESTATION
+  # THIS IS THE EXACT JOB THAT WAS FAILING:
+  # Upgrading this to @v2.1.0 bypasses the blocked artifact upload tools entirely.
   provenance:
     needs: [build]
     permissions:
-      id-token: write   # Required for keyless OIDC signing
-      contents: read     # Required to read repository info
-      actions: read      # Required to evaluate workflow metrics
-    
-    # FIXED: Swapped out old v1 tags for v2.1.0, which stops pulling the deprecated v3 artifact upload code
+      id-token: write   # Required for security token generation
+      contents: read     # Required to read repository file structures
+      actions: read      # Required to check execution states
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.build.outputs.hashes }}"
