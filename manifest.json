@@ -1,0 +1,17 @@
+```json
+{
+  "name": "Aashiya Memories",
+  "short_name": "Aashiya",
+  "start_url": "/aashya camp .html",
+  "display": "standalone",
+  "background_color": "#0b1a10",
+  "theme_color": "#dfc15d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "IMG-20260526-WA0992.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

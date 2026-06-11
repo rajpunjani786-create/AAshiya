@@ -197,4 +197,18 @@
     </script>
 
 </body>
+
+
+    <!-- PWA App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#dfc15d">
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log("App Service Worker Registered"))
+            .catch(err => console.log("Service Worker Failed", err));
+        }
+    </script>
 </html>
