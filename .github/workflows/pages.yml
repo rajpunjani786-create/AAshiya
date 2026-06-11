@@ -1,4 +1,4 @@
-name: CI Build and Provenance
+name: CI Build and Package
 
 on:
   push:
@@ -10,34 +10,41 @@ jobs:
   build:
     name: Build and Package
     runs-on: ubuntu-latest
+    
+    # OPTIONAL: Uncomment the lines below if your project lives in a subfolder (e.g., frontend/ or app/)
+    # defaults:
+    #   run:
+    #     working-directory: ./your-subfolder-name
 
     steps:
-      # 1. Fixed: Kept up-to-date with modern Node runner environments
+      # 1. Checkout your repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (Upgraded to Node 22 to clear out Node 20 deprecation warnings)
+      # 2. Setup Node.js 
+      # Note: We safely removed the 'cache' property here to prevent the pipeline from failing 
+      # if a package-lock.json isn't present in your repository yet.
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
+      # 3. Install your project dependencies
+      # Changed from 'npm ci' to 'npm install' because 'npm ci' strictly requires a package-lock.json to exist.
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
+      # 4. Run your build scripts
       - name: Run Build
         run: npm run build --if-present
 
-      # 3. Fixed: Replaced deprecated 'set-output' syntax with modern environment files
-      - name: Detect Environment (Provenance Setup)
+      # 5. Modernized output strategy (Replaces the deprecated 'set-output' syntax)
+      - name: Detect Environment
         id: detect-env
         run: |
-          echo "Current environment configuration..."
           echo "env_name=production" >> $GITHUB_OUTPUT
-          echo "build_time=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      # 4. Fixed: Upgraded from the deprecated commit hash to the stable v4 release
+      # 6. Upload your final build artifacts using the secure v4 version
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
